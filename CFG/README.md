@@ -1,6 +1,6 @@
 **鲸书第七章**
 
-## cfg
+## CFG 文件
 在 llvm 源码中找到 `llvm/lib/Analysis/CFG.cpp` 与 `llvm/include/llvm/Analysis/CFG.h`
 
 因为文件都不长, 先直接贴源码 + 注释(ai 注释后, 改了一些有误的地方), 然后在分析.
@@ -455,6 +455,6 @@
 ---
 使用了 `BasicBlock` 与 `DominatorTree` 类的一些方法上面没说, 我们下面介绍
 
-## BasicBlock
+## BasicBlock 类
 
-## DominatorTree
+## DominatorTree 类
