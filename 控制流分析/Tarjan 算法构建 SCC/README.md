@@ -1,7 +1,8 @@
 ## 简介
 在编译优化中, 识别循环结构是非常重要的基础工作, 而强连通分量(SCC)是识别循环的核心工具
 
-对于 SCC 只有鲸书的第七章 141 页有所提及(如果我没看漏的话), 使用 Tarjan 算法, 实话说不容易看懂, 下面这个信息奥赛的老师讲解的很清楚: https://www.bilibili.com/video/BV1SY411M7Tv/?spm_id_from=333.1387.favlist.content.click&vd_source=fd7f17cce2cc926b1a321c3996d115e0.
+对于 SCC 只有鲸书的第七章 141 页有所提及(如果我没看漏的话), 使用 Tarjan 算法, 实话说不容易看懂, 下面这个信息奥赛的老师讲解的很清楚:
+- https://www.bilibili.com/video/BV1SY411M7Tv/?spm_id_from=333.1387.favlist.content.click&vd_source=fd7f17cce2cc926b1a321c3996d115e0
 
 ## SCC 有什么用?
 - 划分结构: 每个 SCC 内部任意节点互相可达, 即 “强连通”, 构建 SCC 后, 原图被拆分为多个 SCC, 这些 SCC 之间形成的新图(SCC-DAG)必然无环. 
@@ -251,7 +252,9 @@ void scc_iterator<GraphT, GT>::DFSVisitChildren() {
 }
 ```
 ![alt text](image.png)
-可以看到这里的算法和视频中是一样的, 只不过 llvm 是用 VisitStack 实现非递归的 dfs, 视频中是用递归的 dfs, 这个算法的核心思想只有就是递归遍历同时更新节点的访问序号和最小访问序号(从该节点出发, 通过 DFS 树的边或回边可到达的所有节点中, 最小的访问序号), 然后最小访问序号等于自身访问序号就构成了一个 SCC. 而 DFSVisitChildren 函数只负责一条路走到黑, 一直往 VisitStack 中 push, 并更新节点的 NextChild, 防止重复访问, 然后 GetNextSCC 中才会回溯, 将 VisitStack pop_back, 并检查是否构成了 SCC, 最后将找到的 SCC 存入 CurrentSCC 属性中. 
+可以看到这里的算法和视频中是一样的, 只不过 llvm 是用 VisitStack 实现非递归的 dfs, 视频中是用递归的 dfs, 这个算法的核心思想是 DFS 遍历控制流程图同时更新节点的访问序号和最小访问序号(从该节点出发, 通过 DFS 树的边或回边可到达的所有节点中, 最小的访问序号), 然后最小访问序号等于自身访问序号就构成了一个 SCC. 
+
+DFSVisitChildren 函数只负责一条路走到黑, 一直往 VisitStack 中 push, 并更新节点的 NextChild, 防止重复访问, 然后 GetNextSCC 中才会回溯, 将 VisitStack pop_back, 并检查是否构成了 SCC, 最后将找到的 SCC 存入 CurrentSCC 属性中. 
 
 提供了 ++ 操作符重载:
 ```cpp
