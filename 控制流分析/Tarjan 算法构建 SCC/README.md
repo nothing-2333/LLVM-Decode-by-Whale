@@ -154,7 +154,13 @@ void scc_iterator<GraphT, GT>::DFSVisitOne(NodeRef N) {
 #endif
 }
 ```
-DFSVisitOne 函数负责初始化单个节点访问序号 visitNum, 并将 node 与对应序号做映射数组 nodeVisitNumbers, SCC 的候选栈 SCCNodeStack, 以及用来非递归深度优先遍历的栈 VisitStack. 在来看看 GetNextSCC:
+DFSVisitOne 函数负责初始化:
+- 单个节点访问序号 visitNum
+- 将 node 与对应序号做映射数组 nodeVisitNumbers
+- SCC 的候选栈 SCCNodeStack, 记录当前 DFS 路径上的所有节点, 同一 SCC 的节点必然在 DFS 树的同一条路径上, 且根节点是路径上首个满足 low == visitNum 的节点
+- 用来非递归深度优先遍历的栈 VisitStack. 
+
+在来看看 GetNextSCC:
 ```cpp
 // 模板函数：获取下一个强连通分量(SCC)
 // GraphT：图数据结构的类型
@@ -245,7 +251,9 @@ void scc_iterator<GraphT, GT>::DFSVisitChildren() {
 }
 ```
 ![alt text](image.png)
-可以看到这里的算法和视频中是一样的, 只不过 llvm 是用 VisitStack 实现非递归的 dfs, 视频中是用递归的 dfs, 这个算法的核心思想只有就是递归遍历同时更新节点的访问序号和最小访问序号, 然后最小访问序号等于自身访问序号就构成了一个 SCC. 而 DFSVisitChildren 函数只负责一条路走到黑, 一直往 VisitStack 中 push, 并更新节点的 NextChild, 防止重复访问, 然后 GetNextSCC 中才会回溯, 将 VisitStack pop_back, 并检查是否构成了 SCC, 最后将找到的 SCC 存入 CurrentSCC 属性中, 并提供了 ++ 操作符重载:
+可以看到这里的算法和视频中是一样的, 只不过 llvm 是用 VisitStack 实现非递归的 dfs, 视频中是用递归的 dfs, 这个算法的核心思想只有就是递归遍历同时更新节点的访问序号和最小访问序号(从该节点出发, 通过 DFS 树的边或回边可到达的所有节点中, 最小的访问序号), 然后最小访问序号等于自身访问序号就构成了一个 SCC. 而 DFSVisitChildren 函数只负责一条路走到黑, 一直往 VisitStack 中 push, 并更新节点的 NextChild, 防止重复访问, 然后 GetNextSCC 中才会回溯, 将 VisitStack pop_back, 并检查是否构成了 SCC, 最后将找到的 SCC 存入 CurrentSCC 属性中. 
+
+提供了 ++ 操作符重载:
 ```cpp
 scc_iterator &operator++() {
   GetNextSCC();
@@ -257,28 +265,28 @@ scc_iterator &operator++() {
 ```cpp
 // 模板函数：判断当前强连通分量(SCC)是否包含环
 // GraphT：图数据结构的类型
-// GT：图遍历辅助工具类的类型，提供获取子节点迭代器等方法
+// GT：图遍历辅助工具类的类型, 提供获取子节点迭代器等方法
 template <class GraphT, class GT>
 bool scc_iterator<GraphT, GT>::hasCycle() const {
-    // 断言：当前SCC容器不能为空（避免对结束状态的迭代器解引用）
+    // 断言：当前SCC容器不能为空(避免对结束状态的迭代器解引用)
     assert(!CurrentSCC.empty() && "Dereferencing END SCC iterator!");
 
-    // 情况1：若SCC包含多个节点，根据强连通分量定义，必然存在环
-    // （强连通分量要求任意两节点互相可达，多节点时至少形成一个闭合回路）
+    // 情况1：若SCC包含多个节点, 根据强连通分量定义, 必然存在环
+    // (强连通分量要求任意两节点互相可达, 多节点时至少形成一个闭合回路)
     if (CurrentSCC.size() > 1)
       return true;
 
-    // 情况2：若SCC仅含单个节点，需检查该节点是否有指向自身的自环
+    // 情况2：若SCC仅含单个节点, 需检查该节点是否有指向自身的自环
     NodeRef N = CurrentSCC.front();  // 获取SCC中唯一的节点
     // 遍历该节点的所有子节点
     for (ChildItTy CI = GT::child_begin(N), CE = GT::child_end(N); CI != CE;
          ++CI) {
-      // 若存在子节点等于自身（即自环），则该SCC包含环
+      // 若存在子节点等于自身(即自环), 则该SCC包含环
       if (*CI == N)
         return true;
     }
 
-    // 情况3：单个节点且无自环，SCC不包含环
+    // 情况3：单个节点且无自环, SCC不包含环
     return false;
   }
 ```
