@@ -257,7 +257,7 @@
     }
     ```
 
-## Lengauer-Tarjan 算法在 llvm 中的实现
+## Semi-NCA 算法在 llvm 中的实现
 `llvm/include/llvm/Support/GenericDomTreeConstruction.h` 文件实现了 llvm 中用于构建支配树的 Semi-NCA 算法(一种简化版的 Lengauer-Tarjan 算法), 让我们从 `CalculateFromScratch` 方法看起:
 ```cpp
 // 全量构建支配树
