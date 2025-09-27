@@ -11,12 +11,12 @@
 ### 免证声明
 ![alt text](image.png)
 ![alt text](image-1.png)
-...
+......
 
 想要完全搞懂这个算法, 你需要将这些引理, 定理认真看懂, 在 oi-wiki.org 中, 也就是上述图片的出处, 讲的太简洁, 大部分定理的推到需要借助 AI 来做
 ![alt text](image-2.png)
 ![alt text](image-3.png)
-...
+......
 
 这是一件复杂的事, 我们这里不对定理的证明做出额外说明, 只是使用定理, 分析代码. 
 
@@ -33,79 +33,79 @@
 - 第二步(集合 B): 将`特定间接前驱路径上的起点`的半支配点加入候选. 如果在节点 w(DFS 编号 > u), 且 w 能通过一条 “中间所有节点的 DFS 编号均 > u” 的路径间接连到 u(即路径为 w→x₁→x₂→⋯→xₖ→u, 其中 x₁,x₂,⋯,xₖ的编号均 > u), 则将 w 的半支配点 sdom(w) 加入候选。
 - 最后: 选最小的那个候选. 从第一步和第二步找到的所有候选里, 挑出 DFS 编号最小的那个, 就是 u 的半支配点
 - 注释示例代码
-    ```cpp
-    // 深度优先搜索函数, 用于计算节点的 DFS 编号
-    void dfs(int u) {
-        dfn[u] = ++dfc;  // 为当前节点 u 分配 DF S编号, dfc 是全局计数器
-        pos[dfc] = u;    // 记录 DFS 编号对应的节点, 建立编号到节点的映射
-        // 遍历 u 在原图中的所有出边(h[0]存储原图的邻接表)
-        for (int i = h[0][u]; i; i = e[i].x) {
-            int v = e[i].v;  // 获取邻接节点v
-            if (!dfn[v]) {   // 如果 v 尚未被访问(没有 DFS 编号)
-                dfs(v);        // 递归访问 v
-                fth[v] = u;    // 记录 v 在 DFS 树中的父节点是 u
-            }
+```cpp
+// 深度优先搜索函数, 用于计算节点的 DFS 编号
+void dfs(int u) {
+    dfn[u] = ++dfc;  // 为当前节点 u 分配 DF S编号, dfc 是全局计数器
+    pos[dfc] = u;    // 记录 DFS 编号对应的节点, 建立编号到节点的映射
+    // 遍历 u 在原图中的所有出边(h[0]存储原图的邻接表)
+    for (int i = h[0][u]; i; i = e[i].x) {
+        int v = e[i].v;  // 获取邻接节点v
+        if (!dfn[v]) {   // 如果 v 尚未被访问(没有 DFS 编号)
+            dfs(v);        // 递归访问 v
+            fth[v] = u;    // 记录 v 在 DFS 树中的父节点是 u
         }
     }
+}
 
-    // 带路径压缩的并查集查找函数, 用于高效计算半支配点
-    // x: 要查找的节点
-    int find(int x) {
-        if (fa[x] == x) {  // 找到根节点
-            return x;
-        }
-        int tmp = fa[x];   // 暂存父节点, 用于路径压缩后的更新
-        fa[x] = find(fa[x]);  // 递归查找根节点并压缩路径
-        // 路径压缩时维护最小半支配点信息: 
-        // 比较当前节点的最小半支配点候选与父节点的最小半支配点候选
-        if (dfn[sdm[mn[tmp]]] < dfn[sdm[mn[x]]]) {
-            mn[x] = mn[tmp];  // 更新当前节点的最小候选为父节点的最小候选
-        }
-        return fa[x];  // 返回根节点
+// 带路径压缩的并查集查找函数, 用于高效计算半支配点
+// x: 要查找的节点
+int find(int x) {
+    if (fa[x] == x) {  // 找到根节点
+        return x;
     }
+    int tmp = fa[x];   // 暂存父节点, 用于路径压缩后的更新
+    fa[x] = find(fa[x]);  // 递归查找根节点并压缩路径
+    // 路径压缩时维护最小半支配点信息: 
+    // 比较当前节点的最小半支配点候选与父节点的最小半支配点候选
+    if (dfn[sdm[mn[tmp]]] < dfn[sdm[mn[x]]]) {
+        mn[x] = mn[tmp];  // 更新当前节点的最小候选为父节点的最小候选
+    }
+    return fa[x];  // 返回根节点
+}
 
-    // 计算所有节点的半支配点(sdom)
-    void getsdom() {
-    dfs(1);  // 从节点 1 开始 DFS, 初始化 dfn, pos, fth数组
-    
-    // 初始化并查集和半支配点数组: 
-    // mn[x] 存储x所在集合中半支配点最小的节点候选
-    // fa[x] 是并查集的父节点
-    // sdm[x] 存储x的半支配点(sdom)
-    for (int i = 1; i <= n; ++i) {
-        mn[i] = fa[i] = sdm[i] = i;
-    }
-    
-        // 按照 DFS 编号从大到小处理节点, 除了根节点, 根节点半支配点是自身
-        for (int i = dfc; i >= 2; --i) {
-            int u = pos[i];  // 获取当前 DFS 编号对应的节点 u
-            int res = INF;   // 用于记录最小的候选半支配点的 DFS 编号
+// 计算所有节点的半支配点(sdom)
+void getsdom() {
+dfs(1);  // 从节点 1 开始 DFS, 初始化 dfn, pos, fth数组
+
+// 初始化并查集和半支配点数组: 
+// mn[x] 存储x所在集合中半支配点最小的节点候选
+// fa[x] 是并查集的父节点
+// sdm[x] 存储x的半支配点(sdom)
+for (int i = 1; i <= n; ++i) {
+    mn[i] = fa[i] = sdm[i] = i;
+}
+
+    // 按照 DFS 编号从大到小处理节点, 除了根节点, 根节点半支配点是自身
+    for (int i = dfc; i >= 2; --i) {
+        int u = pos[i];  // 获取当前 DFS 编号对应的节点 u
+        int res = INF;   // 用于记录最小的候选半支配点的 DFS 编号
+        
+        // 遍历 u 在反图中的所有入边(h[1]存储反图的邻接表)
+        for (int j = h[1][u]; j; j = e[j].x) {
+            int v = e[j].v;  // 获取 u 的前驱节点 v(反图中 v 是 u 的邻接节点)
             
-            // 遍历 u 在反图中的所有入边(h[1]存储反图的邻接表)
-            for (int j = h[1][u]; j; j = e[j].x) {
-                int v = e[j].v;  // 获取 u 的前驱节点 v(反图中 v 是 u 的邻接节点)
-                
-                if (!dfn[v]) {   // v 没有被 DFS 访问过, 不参与半支配点计算
-                    continue;
-                }
-                
-                find(v);  // 查找 v 的根节点, 并在路径上维护最小半支配点信息
-                
-                // 根据半支配点定义的两种情况更新候选: 
-                if (dfn[v] < dfn[u]) {
-                    // 情况1: v 是 u 的直接前驱且 v 的 DFS 编号小于 u, v 本身是候选
-                    res = std::min(res, dfn[v]);
-                } else {
-                    // 情况2: v 的 DFS 编号大于 u, 取 v 所在集合中最小的半支配点候选
-                    res = std::min(res, dfn[sdm[mn[v]]]);
-                }
+            if (!dfn[v]) {   // v 没有被 DFS 访问过, 不参与半支配点计算
+                continue;
             }
             
-            sdm[u] = pos[res];  // 根据最小 DFS 编号找到对应的节点, 作为 u 的半支配点
-            fa[u] = fth[u];     // 将 u 合并到其 DFS 树的父节点所在集合
+            find(v);  // 查找 v 的根节点, 并在路径上维护最小半支配点信息
+            
+            // 根据半支配点定义的两种情况更新候选: 
+            if (dfn[v] < dfn[u]) {
+                // 情况1: v 是 u 的直接前驱且 v 的 DFS 编号小于 u, v 本身是候选
+                res = std::min(res, dfn[v]);
+            } else {
+                // 情况2: v 的 DFS 编号大于 u, 取 v 所在集合中最小的半支配点候选
+                res = std::min(res, dfn[sdm[mn[v]]]);
+            }
         }
+        
+        sdm[u] = pos[res];  // 根据最小 DFS 编号找到对应的节点, 作为 u 的半支配点
+        fa[u] = fth[u];     // 将 u 合并到其 DFS 树的父节点所在集合
     }
-    ```
+}
+```
 
 ### 根据定理二和定理三求解直接支配点
 ![alt text](image-5.png)
@@ -117,145 +117,145 @@
     - 若 sdom(u) == sdom(v), 则 idom(u) = sdom(u)
     - 若 sdom(u) != sdom(v), 则 idom(u) = idom(v), 再求解 idom(v)
 - 注释示例代码:
-    ```cpp
-    // 边的结构体定义
-    // v: 边的目标节点
-    // x: 下一条边的索引
-    struct E {
-        int v, x;
-    } e[MAX * 4];  // 存储所有边的数组
+```cpp
+// 边的结构体定义
+// v: 边的目标节点
+// x: 下一条边的索引
+struct E {
+    int v, x;
+} e[MAX * 4];  // 存储所有边的数组
 
-    // 邻接表数组, h[x][u] 表示第 x 类图中节点 u 的第一条边的索引
-    // h[0]: 原图(正向边)
-    // h[1]: 反图(反向边, 用于计算半支配点)
-    // h[2]: 临时存储半支配点相关的边(用于计算直接支配点)
-    int h[3][MAX * 2];
+// 邻接表数组, h[x][u] 表示第 x 类图中节点 u 的第一条边的索引
+// h[0]: 原图(正向边)
+// h[1]: 反图(反向边, 用于计算半支配点)
+// h[2]: 临时存储半支配点相关的边(用于计算直接支配点)
+int h[3][MAX * 2];
 
-    // 全局变量定义
-    int dfc;         // DFS 计数器, 用于分配 DFS 编号
-    int tot;         // 边的总数计数器
-    int n, m;        // n: 节点数, m: 边数
-    int u, v;        // 临时变量, 用于读取边
-    // 数组功能说明: 
-    int fa[MAX];     // 并查集的父节点数组
-    int fth[MAX];    // 节点在 DFS 树中的父节点
-    int pos[MAX];    // DFS 编号到节点的映射(pos[dfn[u]] = u)
-    int mn[MAX];     // 并查集中维护的最小半支配点候选节点
-    int idm[MAX];    // 存储节点的直接支配点(idom)
-    int sdm[MAX];    // 存储节点的半支配点(sdom)
-    int dfn[MAX];    // 节点的 DFS 编号
-    int ans[MAX];    // 可能用于存储最终结果(视具体问题而定)
+// 全局变量定义
+int dfc;         // DFS 计数器, 用于分配 DFS 编号
+int tot;         // 边的总数计数器
+int n, m;        // n: 节点数, m: 边数
+int u, v;        // 临时变量, 用于读取边
+// 数组功能说明: 
+int fa[MAX];     // 并查集的父节点数组
+int fth[MAX];    // 节点在 DFS 树中的父节点
+int pos[MAX];    // DFS 编号到节点的映射(pos[dfn[u]] = u)
+int mn[MAX];     // 并查集中维护的最小半支配点候选节点
+int idm[MAX];    // 存储节点的直接支配点(idom)
+int sdm[MAX];    // 存储节点的半支配点(sdom)
+int dfn[MAX];    // 节点的 DFS 编号
+int ans[MAX];    // 可能用于存储最终结果(视具体问题而定)
 
-    // 向邻接表中添加边
-    // x: 图的类型(0:原图, 1:反图, 2:临时图)
-    // u: 边的起点
-    // v: 边的终点
-    void add(int x, int u, int v) {
-        e[++tot] = {v, h[x][u]};  // 创建新边, 下一条边指向当前 u 的第一条边
-        h[x][u] = tot;            // 更新 u 的第一条边为新边的索引
-    }
+// 向邻接表中添加边
+// x: 图的类型(0:原图, 1:反图, 2:临时图)
+// u: 边的起点
+// v: 边的终点
+void add(int x, int u, int v) {
+    e[++tot] = {v, h[x][u]};  // 创建新边, 下一条边指向当前 u 的第一条边
+    h[x][u] = tot;            // 更新 u 的第一条边为新边的索引
+}
 
-    // 深度优先搜索, 用于构建 DFS 树并分配 DFS 编号
-    // u: 当前遍历的节点
-    void dfs(int u) {
-        dfn[u] = ++dfc;  // 为当前节点分配 DFS 编号
-        pos[dfc] = u;    // 记录 DFS 编号对应的节点
-        // 遍历原图中 u 的所有出边
-        for (int i = h[0][u]; i; i = e[i].x) {
-            int v = e[i].v;     // 获取邻接节点 v
-            if (!dfn[v]) {      // 如果 v 未被访问(没有 DFS 编号)
-                dfs(v);         // 递归访问 v
-                fth[v] = u;     // 记录 v 在 DFS 树中的父节点是 u
-            }
+// 深度优先搜索, 用于构建 DFS 树并分配 DFS 编号
+// u: 当前遍历的节点
+void dfs(int u) {
+    dfn[u] = ++dfc;  // 为当前节点分配 DFS 编号
+    pos[dfc] = u;    // 记录 DFS 编号对应的节点
+    // 遍历原图中 u 的所有出边
+    for (int i = h[0][u]; i; i = e[i].x) {
+        int v = e[i].v;     // 获取邻接节点 v
+        if (!dfn[v]) {      // 如果 v 未被访问(没有 DFS 编号)
+            dfs(v);         // 递归访问 v
+            fth[v] = u;     // 记录 v 在 DFS 树中的父节点是 u
         }
     }
+}
 
-    // 并查集查找函数, 带路径压缩和最小半支配点维护
-    // x: 要查找的节点
-    int find(int x) {
-        if (fa[x] == x) {  // 找到根节点
-            return x;
-        }
-        int tmp = fa[x];   // 暂存父节点, 用于路径压缩后的更新
-        fa[x] = find(fa[x]);  // 递归查找根节点并压缩路径
-        // 维护最小半支配点候选: 比较父节点路径上的最小候选和当前节点的最小候选
-        if (dfn[sdm[mn[tmp]]] < dfn[sdm[mn[x]]]) {
-            mn[x] = mn[tmp];  // 更新当前节点的最小候选为父节点的最小候选
-        }
-        return fa[x];  // 返回根节点
+// 并查集查找函数, 带路径压缩和最小半支配点维护
+// x: 要查找的节点
+int find(int x) {
+    if (fa[x] == x) {  // 找到根节点
+        return x;
     }
+    int tmp = fa[x];   // 暂存父节点, 用于路径压缩后的更新
+    fa[x] = find(fa[x]);  // 递归查找根节点并压缩路径
+    // 维护最小半支配点候选: 比较父节点路径上的最小候选和当前节点的最小候选
+    if (dfn[sdm[mn[tmp]]] < dfn[sdm[mn[x]]]) {
+        mn[x] = mn[tmp];  // 更新当前节点的最小候选为父节点的最小候选
+    }
+    return fa[x];  // 返回根节点
+}
 
-    // Lengauer-Tarjan 算法主函数, 计算所有节点的直接支配点
-    // st: 起始节点(通常是根节点)
-    void tar(int st) {
-        dfs(st);  // 执行DFS, 初始化 dfn, pos, fth
+// Lengauer-Tarjan 算法主函数, 计算所有节点的直接支配点
+// st: 起始节点(通常是根节点)
+void tar(int st) {
+    dfs(st);  // 执行DFS, 初始化 dfn, pos, fth
+    
+    // 初始化并查集, 半支配点, 最小候选数组
+    for (int i = 1; i <= n; ++i) {
+        fa[i] = sdm[i] = mn[i] = i;  // 都是自身
+    }
+    
+    // 按照 DFS 编号从大到小处理节点(跳过根节点, 根节点没有支配点)
+    for (int i = dfc; i >= 2; --i) {
+        int u = pos[i];  // 获取当前 DFS 编号对应的节点 u
+        int res = INF;   // 存储最小的候选半支配点的 DFS 编号
         
-        // 初始化并查集, 半支配点, 最小候选数组
-        for (int i = 1; i <= n; ++i) {
-            fa[i] = sdm[i] = mn[i] = i;  // 都是自身
-        }
-        
-        // 按照 DFS 编号从大到小处理节点(跳过根节点, 根节点没有支配点)
-        for (int i = dfc; i >= 2; --i) {
-            int u = pos[i];  // 获取当前 DFS 编号对应的节点 u
-            int res = INF;   // 存储最小的候选半支配点的 DFS 编号
+        // 遍历反图中 u 的所有入边(即 u 的所有前驱节点)
+        for (int j = h[1][u]; j; j = e[j].x) {
+            int v = e[j].v;  // 获取 u 的前驱节点 v
             
-            // 遍历反图中 u 的所有入边(即 u 的所有前驱节点)
-            for (int j = h[1][u]; j; j = e[j].x) {
-                int v = e[j].v;  // 获取 u 的前驱节点 v
-                
-                if (!dfn[v]) {   // v 未被 DFS 访问, 不参与计算
-                    continue;
-                }
-                
-                find(v);  // 查找 v 的根节点, 同时维护路径上的最小半支配点信息
-                
-                // 根据半支配点定义的两种情况更新候选: 
-                if (dfn[v] < dfn[u]) {
-                    // 情况1: v 是 u 的直接前驱且 v 的 DFS 编号小于 u, v 本身是候选
-                    res = std::min(res, dfn[v]);
-                } else {
-                    // 情况2: v 的 DFS 编号大于 u, 取 v 所在集合中最小的半支配点候选
-                    res = std::min(res, dfn[sdm[mn[v]]]);
-                }
+            if (!dfn[v]) {   // v 未被 DFS 访问, 不参与计算
+                continue;
             }
             
-            sdm[u] = pos[res];  // 确定 u 的半支配点(res 是最小 DFS 编号, pos[res] 是对应节点)
-            fa[u] = fth[u];     // 将 u 合并到其 DFS 树的父节点所在集合
-            add(2, sdm[u], u);  // 向临时图中添加一条从 sdm[u] 到 u 的边
+            find(v);  // 查找 v 的根节点, 同时维护路径上的最小半支配点信息
             
-            u = fth[u];  // 切换到 u 在 DFS 树中的父节点
-            
-            // 处理临时图中 u 的所有边(这些边连接 u 和它的半支配点相关节点)
-            for (int j = h[2][u]; j; j = e[j].x) {
-                int v = e[j].v;  // v 是需要计算 idom 的节点, 且 sdom(v) == u
-                
-                // 查找 v 在并查集中的根节点, 更新路径上的最小 sdom 候选
-                find(v);
-                
-                // 根据定理二和定理三确定 v 的直接支配点: 
-                // mn[v] 是 v 在 DFS 树中从 sdm[v] 到 v 路径上 sdom 最小的节点
-                if (sdm[mn[v]] == u) {
-                    // 情况1: 若 mn[v] 的半支配点等于 u, 即sdm[v], 则 v 的 idom 就是 u
-                    idm[v] = u;
-                } else {
-                    // 情况2: 否则, v 的 idom 暂时设为 mn[v](后续需修正为 mn[v] 的 idom)
-                    idm[v] = mn[v];
-                }
+            // 根据半支配点定义的两种情况更新候选: 
+            if (dfn[v] < dfn[u]) {
+                // 情况1: v 是 u 的直接前驱且 v 的 DFS 编号小于 u, v 本身是候选
+                res = std::min(res, dfn[v]);
+            } else {
+                // 情况2: v 的 DFS 编号大于 u, 取 v 所在集合中最小的半支配点候选
+                res = std::min(res, dfn[sdm[mn[v]]]);
             }
-            h[2][u] = 0;  // 清空临时图中 u 的边, 避免重复处理
         }
         
-        // 处理第二步中情况 2 的临时结果, 修正直接支配点
-        for (int i = 2; i <= dfc; ++i) {
-            int u = pos[i];
-            if (idm[u] != sdm[u]) {
-                // 若 u 的 idom 不等于其半支配点, 说明属于情况 2, 需继承 mn[v] 的 idom
-                idm[u] = idm[idm[u]];
+        sdm[u] = pos[res];  // 确定 u 的半支配点(res 是最小 DFS 编号, pos[res] 是对应节点)
+        fa[u] = fth[u];     // 将 u 合并到其 DFS 树的父节点所在集合
+        add(2, sdm[u], u);  // 向临时图中添加一条从 sdm[u] 到 u 的边
+        
+        u = fth[u];  // 切换到 u 在 DFS 树中的父节点
+        
+        // 处理临时图中 u 的所有边(这些边连接 u 和它的半支配点相关节点)
+        for (int j = h[2][u]; j; j = e[j].x) {
+            int v = e[j].v;  // v 是需要计算 idom 的节点, 且 sdom(v) == u
+            
+            // 查找 v 在并查集中的根节点, 更新路径上的最小 sdom 候选
+            find(v);
+            
+            // 根据定理二和定理三确定 v 的直接支配点: 
+            // mn[v] 是 v 在 DFS 树中从 sdm[v] 到 v 路径上 sdom 最小的节点
+            if (sdm[mn[v]] == u) {
+                // 情况1: 若 mn[v] 的半支配点等于 u, 即sdm[v], 则 v 的 idom 就是 u
+                idm[v] = u;
+            } else {
+                // 情况2: 否则, v 的 idom 暂时设为 mn[v](后续需修正为 mn[v] 的 idom)
+                idm[v] = mn[v];
             }
         }
+        h[2][u] = 0;  // 清空临时图中 u 的边, 避免重复处理
     }
-    ```
+    
+    // 处理第二步中情况 2 的临时结果, 修正直接支配点
+    for (int i = 2; i <= dfc; ++i) {
+        int u = pos[i];
+        if (idm[u] != sdm[u]) {
+            // 若 u 的 idom 不等于其半支配点, 说明属于情况 2, 需继承 mn[v] 的 idom
+            idm[u] = idm[idm[u]];
+        }
+    }
+}
+```
 
 ## Semi-NCA 算法在 llvm 中的实现
 `llvm/include/llvm/Support/GenericDomTreeConstruction.h` 文件实现了 llvm 中用于构建支配树的 Semi-NCA 算法(一种简化版的 Lengauer-Tarjan 算法), 让我们从 `CalculateFromScratch` 方法看起:
