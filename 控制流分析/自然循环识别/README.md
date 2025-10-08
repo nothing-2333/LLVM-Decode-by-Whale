@@ -14,14 +14,14 @@
 ## llvm 用来识别自然循环的代码
 识别自然循环的代码在 `llvm/include/llvm/Support/GenericLoopInfoImpl.h` 中, 让我们来看看, 从 `analyze` 方法看起:
 ```cpp
-/// 分析循环信息，通过后序遍历支配树（DominatorTree）来发现循环，
-/// 并在每个子循环中交错进行反向控制流图（CFG）遍历（discoverAndMapSubloop）。
+/// 分析循环信息，通过后序遍历支配树(DominatorTree)来发现循环，
+/// 并在每个子循环中交错进行反向控制流图(CFG)遍历(discoverAndMapSubloop)。
 /// 反向遍历会跳过内部子循环，因此这部分算法的时间复杂度与控制流图的边数呈线性关系。
-/// 然后在一次正向控制流图遍历（PopulateLoopDFS）中填充子循环和块（Block）向量。
+/// 然后在一次正向控制流图遍历(PopulateLoopDFS)中填充子循环和块(Block)向量。
 ///
 /// 在两次控制流图遍历中，每个块会被看到三次：
 /// 1) 通过反向控制流图遍历被发现并映射。
-/// 2) 在正向深度优先搜索（DFS）控制流图遍历中被访问。
+/// 2) 在正向深度优先搜索(DFS)控制流图遍历中被访问。
 /// 3) 按照正向DFS的后序顺序反向插入到循环中。
 ///
 /// 块向量是包含式的，因此步骤3需要根据循环深度对每个块进行插入操作。
@@ -77,7 +77,7 @@ for (auto PredBlock : children<Inverse<BlockT*>>(Header)) {
 再来看看 `discoverAndMapSubloop`:
 ```cpp
 //===----------------------------------------------------------------------===//
-/// 稳定的循环信息分析 - 使用稳定的迭代器构建循环树，使得结果不依赖于使用列表（块的前驱）的顺序。
+/// 稳定的循环信息分析 - 使用稳定的迭代器构建循环树，使得结果不依赖于使用列表(块的前驱)的顺序。
 
 /// 发现具有指定反向边的子循环，满足以下条件：
 /// 1. 此循环内的所有块都被映射到此循环或其子循环。
@@ -156,10 +156,10 @@ void PopulateLoopsDFS<BlockT, LoopT>::traverse(BlockT *EntryBlock) {
 /// 然后反转已完成的子循环的基本块和子循环向量，以获得反向后序(RPO)
 template <class BlockT, class LoopT>
 void PopulateLoopsDFS<BlockT, LoopT>::insertIntoLoop(BlockT *Block) {
-  // 获取当前基本块所属的循环（如果存在）
+  // 获取当前基本块所属的循环(如果存在)
   LoopT *Subloop = LI->getLoopFor(Block);
   
-  // 如果当前块是某个循环的头块（说明我们已处理完该循环的所有基本块）
+  // 如果当前块是某个循环的头块(说明我们已处理完该循环的所有基本块)
   if (Subloop && Block == Subloop->getHeader()) {
     // 这部分代码在处理完子循环的所有基本块后执行一次
     
@@ -171,7 +171,7 @@ void PopulateLoopsDFS<BlockT, LoopT>::insertIntoLoop(BlockT *Block) {
       LI->addTopLevelLoop(Subloop);
 
     // 为了方便处理，基本块和子循环是以后序插入的
-    // 反转列表（除了始终位于开头的循环头块）以获得反向后序(RPO)
+    // 反转列表(除了始终位于开头的循环头块)以获得反向后序(RPO)
     Subloop->reverseBlock(1);  // 从索引1开始反转，保留头块在首位
     std::reverse(Subloop->getSubLoopsVector().begin(),
                  Subloop->getSubLoopsVector().end());
